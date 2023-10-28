@@ -108,6 +108,7 @@ func (g *Group) getLocally(key string) (ByteView, error) {
     }
 
     value := ByteView{b: cloneBytes(bytes)}
+    // 将数据添加到缓存中
     g.populateCache(key, value)
 
     return value, nil
