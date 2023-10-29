@@ -17,6 +17,7 @@ func loadData(key string) ([]byte, error) {
 getterFunc := GetterFunc(loadData)
 
 // 调用 GetterFunc 类型的 Get 方法，实际上是调用 loadData 函数
+// f(key) 就是调用相应的 GetterFunc 类型的函数
 data, err := getterFunc.Get("key")
 if err != nil {
     // 处理错误

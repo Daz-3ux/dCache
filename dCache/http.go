@@ -2,7 +2,7 @@ package dCache
 
 import (
     "fmt"
-    "github.com/Daz-3ux/dazcache/consistentHash"
+    "github.com/Daz-3ux/dazcache/dCache/consistentHash"
     "io"
     "log"
     "net/http"
@@ -90,6 +90,7 @@ type httpGetter struct {
     baseURL string
 }
 
+// Get 是 PeerGetter 接口的具体实现, 用于从对应 group 查找缓存值
 func (h *httpGetter) Get(group string, key string) ([]byte, error) {
     u := fmt.Sprintf(
         "%v%v/%v",
@@ -132,6 +133,7 @@ func (p *HTTPPool) Set(peers ...string) {
     }
 }
 
+// PickPeer 是 PeerPicker 接口的具体实现, 用于根据具体的 key 选择节点
 func (p *HTTPPool) PickPeer(key string) (PeerGetter, bool) {
     p.mu.Lock()
     defer p.mu.Unlock()

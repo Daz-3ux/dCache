@@ -16,4 +16,4 @@
 
 ### LRU core
 - 字典 + 双向链表
-![LRU 核心数据结构](../assert/lru.jpg)
+![LRU 核心数据结构](../../assert/lru.jpg)
