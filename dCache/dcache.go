@@ -2,6 +2,7 @@ package dCache
 
 import (
     "fmt"
+    "github.com/Daz-3ux/dazcache/dCache/singleFlight"
     "log"
     "sync"
 )
@@ -48,6 +49,7 @@ type Group struct {
     getter    Getter
     mainCache cache
     peers     PeerPicker
+    loader    *singleFlight.Group
 }
 
 var (
@@ -67,6 +69,7 @@ func NewGroup(name string, cacheBytes int64, getter Getter) *Group {
         name:      name,
         getter:    getter,
         mainCache: cache{cacheBytes: cacheBytes},
+        loader:    &singleFlight.Group{},
     }
     groups[name] = g
 
@@ -108,16 +111,24 @@ func (g *Group) RegisterPeers(peers PeerPicker) {
 }
 
 func (g *Group) load(key string) (value ByteView, err error) {
-    if g.peers != nil {
-        if peer, ok := g.peers.PickPeer(key); ok {
-            if value, err = g.getFromPeer(peer, key); err == nil {
-                return value, nil
+    // 每个 key 只加载一次，无论是缓存还是数据库, 无论是否并发
+    viewi, err := g.loader.Do(key, func() (interface{}, error) {
+        if g.peers != nil {
+            if peer, ok := g.peers.PickPeer(key); ok {
+                if value, err = g.getFromPeer(peer, key); err == nil {
+                    return value, nil
+                }
+                log.Println("[dCache] Failed to get from peer", err)
             }
-            log.Println("[dCache] Failed to get from peer", err)
         }
+        return g.getLocally(key)
+    })
+
+    if err != nil {
+        return viewi.(ByteView), err
     }
 
-    return g.getLocally(key)
+    return
 }
 
 func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
