@@ -2,7 +2,9 @@ package dCache
 
 import (
     "fmt"
-    "github.com/Daz-3ux/dazcache/dCache/consistentHash"
+    "github.com/Daz-3ux/dazCache/dCache/consistentHash"
+    pb "github.com/Daz-3ux/dazCache/dCache/dCachePB"
+    "google.golang.org/protobuf/proto"
     "io"
     "log"
     "net/http"
@@ -75,8 +77,15 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // 以 proto message 格式将缓存值写入 ResponseBody
+    body, err := proto.Marshal(&pb.DCacheResponse{Value: string(view.ByteSlice())})
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
     w.Header().Set("Content-Type", "application/octet-stream")
-    _, err = w.Write(view.ByteSlice())
+    _, err = w.Write(body)
     if err != nil {
         p.Log("%v", err)
     }
@@ -91,34 +100,38 @@ type httpGetter struct {
 }
 
 // Get 是 PeerGetter 接口的具体实现, 用于从对应 group 查找缓存值
-func (h *httpGetter) Get(group string, key string) ([]byte, error) {
+func (h *httpGetter) Get(in *pb.DCacheRequest, out *pb.DCacheResponse) error {
     u := fmt.Sprintf(
         "%v%v/%v",
         h.baseURL,
-        url.QueryEscape(group),
-        url.QueryEscape(key),
+        url.QueryEscape(in.GetGroup()),
+        url.QueryEscape(in.GetKey()),
     )
     res, err := http.Get(u)
     if err != nil {
-        return nil, err
+        return err
     }
     defer func(Body io.ReadCloser) {
         err := Body.Close()
         if err != nil {
-            log.Println(err)
+            log.Println("close body error")
         }
     }(res.Body)
 
     if res.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("server returned: %v", res.Status)
+        return fmt.Errorf("server returned: %v", res.Status)
     }
 
     bytes, err := io.ReadAll(res.Body)
     if err != nil {
-        return nil, fmt.Errorf("reading response body: %v", err)
+        return fmt.Errorf("reading response body: %v", err)
     }
 
-    return bytes, nil
+    if err = proto.Unmarshal(bytes, out); err != nil {
+        return fmt.Errorf("decoding response body: %v", err)
+    }
+
+    return nil
 }
 
 func (p *HTTPPool) Set(peers ...string) {

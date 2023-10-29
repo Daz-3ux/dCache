@@ -2,7 +2,8 @@ package dCache
 
 import (
     "fmt"
-    "github.com/Daz-3ux/dazcache/dCache/singleFlight"
+    pb "github.com/Daz-3ux/dazCache/dCache/dCachePB"
+    "github.com/Daz-3ux/dazCache/dCache/singleFlight"
     "log"
     "sync"
 )
@@ -132,12 +133,17 @@ func (g *Group) load(key string) (value ByteView, err error) {
 }
 
 func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
-    bytes, err := peer.Get(g.name, key)
+    req := &pb.DCacheRequest{
+        Group: g.name,
+        Key:   key,
+    }
+    res := &pb.DCacheResponse{}
+    err := peer.Get(req, res)
     if err != nil {
         return ByteView{}, err
     }
 
-    return ByteView{b: bytes}, nil
+    return ByteView{b: []byte(res.Value)}, nil
 }
 
 func (g *Group) getLocally(key string) (ByteView, error) {

@@ -3,7 +3,7 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/Daz-3ux/dazcache/dCache"
+    "github.com/Daz-3ux/dazCache/dCache"
     "log"
     "net/http"
 )
