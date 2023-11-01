@@ -22,14 +22,17 @@ type Group struct {
 ```
 
 
-## HTTP 服务器
-- 通过 HTTP 服务器保证分布式缓存的节点间通信
-  - 如果一个节点启动了 HTTP 服务器，那么这个节点就可以接受别的节点的访问请求
-  - HTTPPol 是承载节点间通信的核心数据结构
+## gRPC 服务器
 ```go
-type HTTPPool struct {
-	self     string
-	basePath string
+type server struct {
+    pb.UnimplementedGroupCacheServer
+
+    addr       string     // format: ip:port
+    status     bool       // true: running / false: stop
+    stopSignal chan error // 通知 etcd 停止的信号
+    mu         sync.Mutex
+    consHash   *consistentHash.Map
+    clients    map[string]*client
 }
 ```
 
