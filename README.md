@@ -10,6 +10,7 @@ dCache 是一个基于 Go 开发的`分布式缓存系统`
 - 使用 [单机并发控制](./dCache/singleFlight/README.md) 防止缓存击穿
 - 使用 [gRPC](./dCache/dCachePB/README.md) 作为通信协议
 - 使用 [Protobuf](./dCache/dCachePB/README.md) 作为序列化方
+- 使用 [etcd]() 进行服务发现
 
 ## Installation
 - 构建
