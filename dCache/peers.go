@@ -5,14 +5,12 @@
 
 package dCache
 
-import pb "github.com/Daz-3ux/dazCache/dCache/dCachePB"
-
-// PeerPicker 是必须实现的接口, 用于定位拥有特定键的对等节点
-type PeerPicker interface {
-	PickPeer(key string) (peer PeerGetter, ok bool)
+// Picker 定义了获取分布式节点的能力
+type Picker interface {
+	Pick(key string) (peer Fetcher, ok bool)
 }
 
-// PeerGetter 是对等节点必须实现的接口, 用于从对应 group 查找缓存值
-type PeerGetter interface {
-	Get(in *pb.DCacheRequest, out *pb.DCacheResponse) error
+// Fetcher 定义了从远端获取缓存的能力, 每个 Peer 都应该实现此接口
+type Fetcher interface {
+	Fetch(group string, key string) ([]byte, error)
 }

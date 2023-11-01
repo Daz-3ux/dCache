@@ -21,19 +21,15 @@ add-copyright: # add license header
 
 .PHONY: build
 build: tidy # compile source code, auto adding/removing dependency packages depending on "tidy" target
-	go build -gcflags "all=-N -l" -v -ldflags "$(GO_LDFLAGS)" -o $(OUTPUT_DIR)/dCache $(ROOT_DIR)/main.go
+	go build -gcflags "all=-N -l" -v -ldflags "$(GO_LDFLAGS)" -o $(OUTPUT_DIR)/dCache $(ROOT_DIR)/example/main.go
 
 .PHONY: format
 format: # format source code
 	gofmt -s -w ./
 
-.PHONY: run
-run: # run the program
-	sh $(ROOT_DIR)/scripts/run.sh
-
 .PHONY: test
 test: # run unit tests
-	sh $(ROOT_DIR)/scripts/run.sh
+	go run example/main.go
 
 .PHONY: tidy
 tidy: # auto add/remove dependency packages

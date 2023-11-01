@@ -16,6 +16,12 @@ type cache struct {
 	cacheBytes int64
 }
 
+func newCache(cacheBytes int64) *cache {
+	return &cache{
+		cacheBytes: cacheBytes,
+	}
+}
+
 func (c *cache) add(key string, value ByteView) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

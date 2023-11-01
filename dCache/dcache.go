@@ -7,7 +7,6 @@ package dCache
 
 import (
 	"fmt"
-	pb "github.com/Daz-3ux/dazCache/dCache/dCachePB"
 	"github.com/Daz-3ux/dazCache/dCache/singleFlight"
 	"log"
 	"sync"
@@ -23,9 +22,9 @@ func loadData(key string) ([]byte, error) {
 // 将 loadData 函数转换为 GetterFunc 类型
 getterFunc := GetterFunc(loadData)
 
-// 调用 GetterFunc 类型的 Get 方法，实际上是调用 loadData 函数
+// 调用 GetterFunc 类型的 Fetch 方法，实际上是调用 loadData 函数
 // f(key) 就是调用相应的 GetterFunc 类型的函数
-data, err := getterFunc.Get("key")
+data, err := getterFunc.Fetch("key")
 if err != nil {
     // 处理错误
 } else {
@@ -54,7 +53,7 @@ type Group struct {
 	name      string
 	getter    Getter
 	mainCache cache
-	peers     PeerPicker
+	picker    Picker
 	loader    *singleFlight.Group
 }
 
@@ -108,46 +107,34 @@ func (g *Group) Get(key string) (ByteView, error) {
 	return g.load(key)
 }
 
-func (g *Group) RegisterPeers(peers PeerPicker) {
-	if g.peers != nil {
+func (g *Group) RegisterPeers(peers Picker) {
+	if g.picker != nil {
 		panic("RegisterPeerPicker called more than once")
 	}
-	g.peers = peers
+
+	g.picker = peers
 }
 
 func (g *Group) load(key string) (value ByteView, err error) {
 	// 每个 key 只加载一次，无论是缓存还是数据库, 无论是否并发
-	viewi, err := g.loader.Do(key, func() (interface{}, error) {
-		if g.peers != nil {
-			if peer, ok := g.peers.PickPeer(key); ok {
-				if value, err = g.getFromPeer(peer, key); err == nil {
-					return value, nil
+	view, err := g.loader.Do(key, func() (interface{}, error) {
+		if g.picker != nil {
+			if peer, ok := g.picker.Pick(key); ok {
+				bytes, err := peer.Fetch(g.name, key)
+				if err == nil {
+					return ByteView{b: bytes}, nil
 				}
-				log.Println("[dCache] Failed to get from peer", err)
+				log.Printf("[dCache] Failed to get [%s] from peer, %s\n", key, err.Error())
 			}
 		}
 		return g.getLocally(key)
 	})
 
 	if err != nil {
-		return viewi.(ByteView), err
+		return view.(ByteView), err
 	}
 
 	return
-}
-
-func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
-	req := &pb.DCacheRequest{
-		Group: g.name,
-		Key:   key,
-	}
-	res := &pb.DCacheResponse{}
-	err := peer.Get(req, res)
-	if err != nil {
-		return ByteView{}, err
-	}
-
-	return ByteView{b: []byte(res.Value)}, nil
 }
 
 func (g *Group) getLocally(key string) (ByteView, error) {
