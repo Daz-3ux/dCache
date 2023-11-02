@@ -31,6 +31,11 @@ format: # format source code
 test: # run unit tests
 	go run example/main.go
 
+.PHONY: perf
+perf: # run performance tests
+	go build -o $(ROOT_DIR)/example/perf/perfTest $(ROOT_DIR)/example/perf/perf.go
+	perf stat record -d -o $(ROOT_DIR)/example/perf/perf.data $(ROOT_DIR)/example/perf/perfTest
+
 .PHONY: tidy
 tidy: # auto add/remove dependency packages
 	go mod tidy
