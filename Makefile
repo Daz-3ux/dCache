@@ -43,3 +43,7 @@ tidy: # auto add/remove dependency packages
 .PHONY: clean
 clean: # clean build output and temporary files
 	-rm -vrf $(OUTPUT_DIR)
+	-rm -rf  $(ROOT_DIR)/example/perf/perfTest
+	-rm -rf  $(ROOT_DIR)/example/perf/perf.data*
+	-rm -rf  $(ROOT_DIR)/example/benchMark/benchMark.test
+	-rm -rf  $(ROOT_DIR)/example/benchMark/cpu.profile
