@@ -69,6 +69,7 @@ ok  	github.com/Daz-3ux/dazCache/example/benchMark	1.135s
 ```
 
 ## 流程
+```
                             是
 接收 key --> 检查是否被缓存 -----> 返回缓存值 ⑴
                 |  否                         是
