@@ -58,6 +58,20 @@ func (c *Cache) Get(key string) (value Value, ok bool) {
 	return
 }
 
+func (c *Cache) Delete(key string) bool {
+	if ele, ok := c.cache[key]; ok {
+		c.ll.Remove(ele)
+		kv := ele.Value.(*entry)
+		delete(c.cache, kv.key)
+		c.nBytes -= int64(len(kv.key)) + int64(kv.value.Len())
+		if c.OnEvicted != nil {
+			c.OnEvicted(kv.key, kv.value)
+		}
+		return true
+	}
+	return false
+}
+
 func (c *Cache) RemoveOldest() {
 	ele := c.ll.Back()
 	if ele != nil {
