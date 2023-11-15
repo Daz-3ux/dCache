@@ -59,13 +59,13 @@ func (c *Cache) Get(key string) (value Value, ok bool) {
 }
 
 func (c *Cache) Delete(key string) bool {
-	if ele, ok := c.cache[key]; ok {
+	if ele, ok := c.hashmap[key]; ok {
 		c.ll.Remove(ele)
 		kv := ele.Value.(*entry)
-		delete(c.cache, kv.key)
+		delete(c.hashmap, kv.key)
 		c.nBytes -= int64(len(kv.key)) + int64(kv.value.Len())
-		if c.OnEvicted != nil {
-			c.OnEvicted(kv.key, kv.value)
+		if c.callback != nil {
+			c.callback(kv.key, kv.value)
 		}
 		return true
 	}
