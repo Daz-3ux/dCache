@@ -31,8 +31,9 @@ import "github.com/peanutzhen/peanutcache"
 
 ## 接口
 - dCache 通过封装 `Group` 对外提供服务
-  - 只提供一个接口
+  - 提供两个接口
     - Get: 从缓存中获取值
+    - Update：先删除数据库，再删除缓存，保证缓存与数据库之间的一致性
   - Group 也是命名空间, 不同的命名空间之间是相互隔离的
 
 ## 性能分析
