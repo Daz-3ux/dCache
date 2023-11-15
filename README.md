@@ -4,9 +4,9 @@ dCache 是一个基于 Go 开发的`分布式缓存系统`, 是一个开箱即�
 
 
 ## Features
-- 使用 [LRU](./dCache/lru/README.md) 进行缓存淘汰
+- 使用 [LRU-K](./dCache/lru/README.md) 进行缓存淘汰
 - 使用 [一致性哈希](./dCache/consistentHash/README.md) 进行节点选择
-- 使用 [单机并发控制](./dCache/singleFlight/README.md) 防止缓存击穿与缓存雪崩
+- 使用 [singleFlight](./dCache/singleFlight/README.md) 防止缓存雪崩与缓存击穿
 - 使用 [gRPC](./dCache/dCachePB/README.md) 实现节点间通信
   - 使用 [Protobuf](./dCache/dCachePB/README.md) 作为序列化方式
 - 使用 [etcd](./dCache/register/README.md) 进行服务发现
@@ -40,7 +40,7 @@ import "github.com/peanutzhen/peanutcache"
 - 测试环境:
   - CPU: Intel(R) Core(TM) i5-9300H CPU @ 2.40GHz
   - GPU: NVIDIA GeForce GTX 1660Ti
-  - 内存: 8+8
+  - 内存: 8G+8G
   - 内核版本: 6.5.9-arch2-1
 - 在缓存均命中的情况下, `go test -bench=".*"` 的结果如下:
 ```shell
